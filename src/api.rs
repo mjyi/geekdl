@@ -23,25 +23,43 @@ pub struct GeekClient {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Course {
+struct Column {
     column_id: i32,
-    name: String,
-
+    column_title: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct Article {
+    id: i32,
+    article_title: String,
+    audio_download_url: String,
+    chapter_id: i32,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Content {
+    chapter_id: i32,
+    content: String,
+}
+
+
+#[derive(Debug, Serialize, Deserialize)]
+struct Comment {
+
+}
 
 // 登录参数
-#[derive(Debug, Serialize, Deserialize)]
-struct Login {
-    country: String,
-    cellphone: String,
-    password: String,
-    captcha: String,
-    remember: i32,
-    platform: i32,
-    #[serde(rename = "appid")]
-    app_id: i32,
-}
+// #[derive(Debug, Serialize, Deserialize)]
+// struct Login {
+//     country: String,
+//     cellphone: String,
+//     password: String,
+//     captcha: String,
+//     remember: i32,
+//     platform: i32,
+//     #[serde(rename = "appid")]
+//     app_id: i32,
+// }
 
 impl GeekClient {
     pub fn new(account: String, password: String) -> Self {
@@ -93,15 +111,6 @@ impl GeekClient {
             "appid": 1,
         });
 
-        // let data = Login {
-        //     country: "86".to_owned(),
-        //     cellphone: self.account.clone(),
-        //     password: self.password.clone(),
-        //     captcha: "".to_owned(),
-        //     remember: 1,
-        //     platform: 3,
-        //     app_id: 1,
-        // };
         let req: Value = self
             .client
             .post(LOGIN_URI)
@@ -112,7 +121,12 @@ impl GeekClient {
             .json()
             .await?;
 
-        // println!("{:#?}", req);
+        if req["code"] == json!(0) {
+            println!("登录成功");
+        } else {
+
+        }
+
         Ok(())
     }
 
@@ -147,7 +161,7 @@ impl GeekClient {
             .json()
             .await?;
 
-        println!("{:#?}", req);
+        println!("{}", req.to_string());
 
         Ok(())
     }
@@ -167,7 +181,7 @@ impl GeekClient {
             .json()
             .await?;
 
-        println!("{:#?}", req);
+        println!("{}", req.to_string());
 
         Ok(())
     }
@@ -187,7 +201,7 @@ impl GeekClient {
             .json()
             .await?;
 
-        println!("{:#?}", req);
+        println!("{}", req.to_string());
 
         Ok(())
     }
