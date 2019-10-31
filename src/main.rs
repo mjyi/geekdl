@@ -1,56 +1,42 @@
-#[macro_use]
-extern crate log;
-#[macro_use]
-extern crate serde_json;
-#[macro_use]
-extern crate failure;
-
-
-use serde::{Serialize, Deserialize};
-
-use geekdl::api::*;
+use structopt::StructOpt;
+use geekdl::*;
 use std::env;
 
 #[tokio::main]
 async fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
-        panic!("please input your account and password.");
+    // let args: Vec<String> = env::args().collect();
+    // if args.len() < 3 {
+    //     panic!("please input your account and password.");
+    // }
+    // let account = args[1].clone();
+    // let password = args[2].clone();
+
+    // let api = GeekClient::new(account, password);
+
+    // if let Err(log_e) = api.login().await {
+    //     println!("{}", log_e);
+    // }
+
+    // if let Err(e) = api.get_course_all().await {
+    //     println!("all {}", e);
+    // }
+
+    // if let Err(e) = api.get_post_list(126).await {
+    //     println!("list: {}", e);
+    // }
+
+    // if let Err(e) = api.get_post_content(79433).await {
+    //     println!("content: {}", e);
+    // }
+
+    let opt = Opt::from_args();
+    println!("{:?}", opt);
+
+    match opt {
+        Opt::Query{ account, password, area } => {
+            println!("{}, {}, {}", account, password, area);
+        },
     }
-    let account = args[1].clone();
-    let password = args[2].clone();
-
-    let api = GeekClient::new(account, password);
-
-    if let Err(log_e) = api.login().await {
-        println!("{}", log_e);
-    }
-
-    // let _ = api.get_course_all().await;
-
-    // let _ = api.get_post_list(126).await;
-
-    // let _ = api.get_post_content(79433).await;
-
-    // serde_test();
-}
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Point {
-    x: i32,
-    y: i32,
-}
-
-
-fn serde_test() {
-    let json = json!({
-        "x": 1,
-        "y": 2,
-        "z": 3,
-    });
-
-    let deser: Point = serde_json::from_value(json).unwrap();
-    println!("deserialized = {:?}", deser);
 
 }
+

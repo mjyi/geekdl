@@ -6,18 +6,24 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     RequestError(reqwest::Error),
 
+    #[fail(display = "{}", _0)]
+    SerdeError(serde_json::Error),
+
     #[fail(display = "Login Failed: {}", _0)]
     LoginFailed(JsonValue),
 
     #[fail(display = "error: {}", _0)]
     ResponseError(JsonValue),
-
-    #[fail(display = "Internal Server Error")]
-    InternalServerError,
 }
 
 impl From<reqwest::Error> for Error {
     fn from(error: reqwest::Error) -> Self {
         Error::RequestError(error)
+    }
+}
+
+impl From<serde_json::Error> for Error {
+    fn from(e: serde_json::Error) -> Self {
+        Error::SerdeError(e)
     }
 }

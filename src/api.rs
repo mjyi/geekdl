@@ -2,9 +2,11 @@ use reqwest::{
     header::{HeaderMap, ACCEPT, ACCEPT_LANGUAGE, HOST, REFERER, USER_AGENT},
     Client,
 };
-use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use crate::errors::Error;
+use crate::{
+    errors::Error,
+    model::*,
+};
 
 // 登录
 const LOGIN_URI: &'static str = "https://account.geekbang.org/account/ticket/login";
@@ -22,45 +24,6 @@ pub struct GeekClient {
     password: String,
     client: Client,
 }
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Column {
-    column_id: i32,
-    column_title: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Article {
-    id: i32,
-    article_title: String,
-    audio_download_url: String,
-    chapter_id: i32,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Content {
-    chapter_id: i32,
-    content: String,
-}
-
-
-#[derive(Debug, Serialize, Deserialize)]
-struct Comment {
-
-}
-
-// 登录参数
-// #[derive(Debug, Serialize, Deserialize)]
-// struct Login {
-//     country: String,
-//     cellphone: String,
-//     password: String,
-//     captcha: String,
-//     remember: i32,
-//     platform: i32,
-//     #[serde(rename = "appid")]
-//     app_id: i32,
-// }
 
 impl GeekClient {
     pub fn new(account: String, password: String) -> Self {
@@ -121,17 +84,15 @@ impl GeekClient {
             .await?
             .json()
             .await?;
-
-        if req["code"] == json!(0) {
+        if is_success_code(&req) {
             println!("登录成功");
         } else {
             Err(Error::LoginFailed(req["error"]["msg"].clone()))?
         }
-
         Ok(())
     }
 
-    pub async fn get_course_all(&self) -> Result<(), reqwest::Error> {
+    pub async fn get_course_all(&self) -> Result<Vec<ColumnsData>, Error> {
         let req: Value = self.client
             .post(COURSES_URI)
             .header(REFERER, "https://account.geekbang.org/dashboard/buy")
@@ -140,11 +101,16 @@ impl GeekClient {
             .json()
             .await?;
 
-        println!("{}", req.to_string());
-        Ok(())
+        if !is_success_code(&req) {
+            return Err(Error::ResponseError(req["error"].clone()))?;
+        }
+        let containers = &req["data"];
+        let ret: Vec<ColumnsData> = serde_json::from_value(containers.clone())?;
+        Ok(ret)
     }
 
-    pub async fn get_post_list(&self, course_id: i32) -> Result<(), reqwest::Error> {
+
+    pub async fn get_post_list(&self, course_id: i32) -> Result<Vec<Article>, Error> {
         let data = json!({
             "cid": course_id.to_string(),
             "size": 1000,
@@ -162,12 +128,15 @@ impl GeekClient {
             .json()
             .await?;
 
-        println!("{}", req.to_string());
+        if !is_success_code(&req) {
+            return Err(Error::ResponseError(req["error"].clone()))?;
+        }
 
-        Ok(())
+        let ret: Vec<Article> = serde_json::from_value(req["data"]["list"].clone())?;
+        Ok(ret)
     }
 
-    pub async fn get_post_content(&self, post_id: i32) -> Result<(), reqwest::Error> {
+    pub async fn get_post_content(&self, post_id: i32) -> Result<Content, Error> {
         let data = json!({
             "id": post_id,
         });
@@ -182,9 +151,12 @@ impl GeekClient {
             .json()
             .await?;
 
-        println!("{}", req.to_string());
+        if !is_success_code(&req) {
+            return Err(Error::ResponseError(req["error"].clone()))?;
+        }
 
-        Ok(())
+        let content: Content = serde_json::from_value(req["data"].clone())?;
+        Ok(content)
     }
 
     pub async fn get_post_comment(&self, post_id: i32) -> Result<(), reqwest::Error> {
@@ -203,8 +175,14 @@ impl GeekClient {
             .await?;
 
         println!("{}", req.to_string());
-
         Ok(())
     }
+}
+
+fn is_success_code(rsp_data: &Value) -> bool {
+    if rsp_data["code"] == json!(0) {
+        return true;
+    }
+    false
 }
 
