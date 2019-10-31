@@ -2,6 +2,10 @@
 extern crate log;
 #[macro_use]
 extern crate serde_json;
+#[macro_use]
+extern crate failure;
+
+
 use serde::{Serialize, Deserialize};
 
 use geekdl::api::*;
@@ -18,13 +22,15 @@ async fn main() {
 
     let api = GeekClient::new(account, password);
 
-    let _ = api.login().await;
+    if let Err(log_e) = api.login().await {
+        println!("{}", log_e);
+    }
 
     // let _ = api.get_course_all().await;
 
     // let _ = api.get_post_list(126).await;
 
-    let _ = api.get_post_content(79433).await;
+    // let _ = api.get_post_content(79433).await;
 
     // serde_test();
 }

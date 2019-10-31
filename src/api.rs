@@ -4,6 +4,7 @@ use reqwest::{
 };
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use crate::errors::Error;
 
 // 登录
 const LOGIN_URI: &'static str = "https://account.geekbang.org/account/ticket/login";
@@ -84,7 +85,7 @@ impl GeekClient {
         }
     }
 
-    pub async fn login(&self) -> Result<(), reqwest::Error> {
+    pub async fn login(&self) -> Result<(), Error> {
         let mut headers = HeaderMap::new();
         headers.insert(ACCEPT, "application/json, text/plain, */*".parse().unwrap());
         headers.insert(
@@ -124,7 +125,7 @@ impl GeekClient {
         if req["code"] == json!(0) {
             println!("登录成功");
         } else {
-
+            Err(Error::LoginFailed(req["error"]["msg"].clone()))?
         }
 
         Ok(())
