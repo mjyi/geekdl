@@ -7,6 +7,12 @@ pub struct ColumnsData {
     list: Vec<Column>,
 }
 
+impl ColumnsData {
+    pub fn is_empty(&self) -> bool {
+        self.list.len() == 0
+    }
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Column {
     title: String,

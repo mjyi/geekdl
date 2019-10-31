@@ -4,6 +4,7 @@ extern crate serde_json;
 extern crate failure;
 
 pub mod api;
+pub mod cmd;
 pub mod errors;
 pub mod model;
 pub mod opt;

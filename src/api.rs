@@ -22,11 +22,12 @@ const COMMENT_URI: &'static str = "https://time.geekbang.org/serv/v1/comments";
 pub struct GeekClient {
     account: String,
     password: String,
+    country: String,
     client: Client,
 }
 
 impl GeekClient {
-    pub fn new(account: String, password: String) -> Self {
+    pub fn new(account: String, password: String, country: String) -> Self {
         let mut headers = HeaderMap::new();
         headers.insert(
             USER_AGENT,
@@ -44,6 +45,7 @@ impl GeekClient {
         GeekClient {
             account,
             password,
+            country,
             client,
         }
     }
@@ -66,7 +68,7 @@ impl GeekClient {
         );
 
         let data = json!({
-            "country": "86",
+            "country": self.country.clone(),
             "cellphone": self.account.clone(),
             "password": self.password.clone(),
             "captcha":"",

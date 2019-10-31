@@ -8,7 +8,7 @@ pub enum Opt {
         account: String,
         #[structopt(long, short)]
         password: String,
-        #[structopt(long, short = "c", help = "the code of area", default_value = "86")]
-        area: String,
+        #[structopt(long, short = "c", help = "the code of country", default_value = "86")]
+        country: String,
     },
 }
