@@ -9,6 +9,9 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     SerdeError(serde_json::Error),
 
+    #[fail(display = "{}", _0)]
+    Io(std::io::Error),
+
     #[fail(display = "Login Failed: {}", _0)]
     LoginFailed(JsonValue),
 
@@ -25,5 +28,11 @@ impl From<reqwest::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         Error::SerdeError(e)
+    }
+}
+
+impl From<std::io::Error> for Error {
+    fn from(e: std::io::Error) -> Self {
+        Error::Io(e)
     }
 }

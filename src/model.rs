@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ColumnsData {
-    id: i32,
-    title: String,
-    list: Vec<Column>,
+    pub id: i32,
+    pub title: String,
+    pub list: Vec<Column>,
 }
 
 impl ColumnsData {
@@ -15,20 +15,20 @@ impl ColumnsData {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Column {
-    title: String,
+    pub title: String,
     #[serde(rename = "type")]
-    rtype: String,
-    extra: Extra,
+    pub rtype: String,
+    pub extra: Extra,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Extra {
-    column_id: i32,
-    column_title: String,
-    view_article_count: i32,
-    article_count: i32,
-    author_name: String,
-    author_intro: String,
+    pub column_id: i32,
+    pub column_title: String,
+    pub view_article_count: i32,
+    pub article_count: i32,
+    pub author_name: String,
+    pub author_intro: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

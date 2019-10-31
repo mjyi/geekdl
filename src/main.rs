@@ -33,10 +33,9 @@ async fn main() {
     println!("{:?}", opt);
 
     match opt {
-        Opt::Query{ account, password, area } => {
-            println!("{}, {}, {}", account, password, area);
+        Opt::Query{ account, password, country } => {
+            cmd::query::run(account, password, country).await.unwrap();
         },
     }
-
 }
 
