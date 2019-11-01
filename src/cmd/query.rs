@@ -50,19 +50,17 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
     // remove `\n`
     input.pop();
 
-    let mut ids: Vec<i32> = input
+    let ids: Vec<i32> = input
         .split(",")
         .into_iter()
         .filter(|&x| x != "")
         .map(|s| s.parse::<i32>().unwrap_or(0))
         .collect();
 
-    println!("{:?}", ids);
     for id in ids {
         if let Some(ref mut col) = cMap.get(&id) {
             let mut articles = client.get_post_list(col.extra.column_id).await?;
             for article in &mut articles {
-
                 let content = client.get_post_content(article.id).await?;
                 article.content = content;
             }
@@ -76,6 +74,8 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
 }
 
 fn generate_column(column: &Column, articles: Vec<Article>) {
+    
+
 
 }
 
