@@ -1,12 +1,9 @@
+use crate::{errors::Error, model::*};
 use reqwest::{
     header::{HeaderMap, ACCEPT, ACCEPT_LANGUAGE, HOST, REFERER, USER_AGENT},
     Client,
 };
 use serde_json::Value;
-use crate::{
-    errors::Error,
-    model::*,
-};
 
 // 登录
 const LOGIN_URI: &'static str = "https://account.geekbang.org/account/ticket/login";
@@ -32,8 +29,8 @@ impl GeekClient {
         headers.insert(
             USER_AGENT,
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:70.0) Gecko/20100101 Firefox/70.0"
-            .parse()
-            .unwrap(),
+                .parse()
+                .unwrap(),
         );
 
         let client = Client::builder()
@@ -56,15 +53,15 @@ impl GeekClient {
         headers.insert(
             ACCEPT_LANGUAGE,
             "zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2"
-            .parse()
-            .unwrap(),
+                .parse()
+                .unwrap(),
         );
         headers.insert(HOST, "account.geekbang.org".parse().unwrap());
         headers.insert(
             REFERER,
             "https://account.geekbang.org/signin?redirect=https%3A%2F%2Fwww.geekbang.org%2F"
-            .parse()
-            .unwrap(),
+                .parse()
+                .unwrap(),
         );
 
         let data = json!({
@@ -87,15 +84,15 @@ impl GeekClient {
             .json()
             .await?;
         if is_success_code(&req) {
-            println!("登录成功");
+            Ok(())
         } else {
             Err(Error::LoginFailed(req["error"]["msg"].clone()))?
         }
-        Ok(())
     }
 
-    pub async fn get_course_all(&self) -> Result<Vec<ColumnsData>, Error> {
-        let req: Value = self.client
+    pub async fn get_column_all(&self) -> Result<Vec<ColumnsData>, Error> {
+        let req: Value = self
+            .client
             .post(COURSES_URI)
             .header(REFERER, "https://account.geekbang.org/dashboard/buy")
             .send()
@@ -111,7 +108,6 @@ impl GeekClient {
         Ok(ret)
     }
 
-
     pub async fn get_post_list(&self, course_id: i32) -> Result<Vec<Article>, Error> {
         let data = json!({
             "cid": course_id.to_string(),
@@ -123,7 +119,10 @@ impl GeekClient {
         let req: Value = self
             .client
             .post(COURSE_LIST_URI)
-            .header(REFERER, format!("https://time.geekbang.org/column/{}", course_id))
+            .header(
+                REFERER,
+                format!("https://time.geekbang.org/column/{}", course_id),
+            )
             .json(&data)
             .send()
             .await?
@@ -146,7 +145,10 @@ impl GeekClient {
         let req: Value = self
             .client
             .post(POST_CONTENT_URI)
-            .header(REFERER, format!("https://time.geekbang.org/column/article/{}", post_id))
+            .header(
+                REFERER,
+                format!("https://time.geekbang.org/column/article/{}", post_id),
+            )
             .json(&data)
             .send()
             .await?
@@ -167,9 +169,13 @@ impl GeekClient {
             "prev":0,
         });
 
-        let req: Value = self.client
+        let req: Value = self
+            .client
             .post(COMMENT_URI)
-            .header(REFERER, format!("https://time.geekbang.org/column/article/{}", post_id))
+            .header(
+                REFERER,
+                format!("https://time.geekbang.org/column/article/{}", post_id),
+            )
             .json(&data)
             .send()
             .await?
@@ -187,4 +193,3 @@ fn is_success_code(rsp_data: &Value) -> bool {
     }
     false
 }
-

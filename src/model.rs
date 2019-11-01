@@ -33,19 +33,20 @@ pub struct Extra {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Article {
-    id: i32,
-    article_title: String,
-    audio_download_url: String,
-    chapter_id: String,
-    column_id: i32,
+    pub id: i32,
+    pub article_title: String,
+    pub audio_download_url: String,
+    pub chapter_id: String,
+    pub column_id: i32,
+    pub content: Content,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Content {
-    chapter_id: String,
-    column_id: String,
-    article_title: String,
-    article_content: String,
+    pub chapter_id: String,
+    pub column_id: String,
+    pub article_title: String,
+    pub article_content: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

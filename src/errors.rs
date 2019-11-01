@@ -17,6 +17,9 @@ pub enum Error {
 
     #[fail(display = "error: {}", _0)]
     ResponseError(JsonValue),
+
+    #[fail(display = "error: {}", 0)]
+    PlainError(&'static str),
 }
 
 impl From<reqwest::Error> for Error {
@@ -34,5 +37,11 @@ impl From<serde_json::Error> for Error {
 impl From<std::io::Error> for Error {
     fn from(e: std::io::Error) -> Self {
         Error::Io(e)
+    }
+}
+
+impl From<&'static str> for Error {
+    fn from(e: &'static str) -> Self {
+        Error::PlainError(e)
     }
 }
