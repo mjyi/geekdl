@@ -48,7 +48,7 @@ async fn main() {
 }
 
 async fn for_test() {
-    let url = "https://static001.geekbang.org/resource/image/8e/d3/8e603e3d795fc0ab2698f6f5eabf14d3.jpg";
+    let url =
+        "https://static001.geekbang.org/resource/image/8e/d3/8e603e3d795fc0ab2698f6f5eabf14d3.jpg";
     let r = utils::fetch_image(url, "").await;
-
 }

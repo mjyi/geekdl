@@ -1,12 +1,11 @@
-use crate::{errors::Error, Column, Article, Content, GeekClient};
+use crate::{errors::Error, utils, Article, Column, Content, GeekClient};
+use regex::{Match, Regex};
 use std::{
     collections::HashMap,
+    fs::File,
     io::{self, Read},
     path::PathBuf,
-    fs::File,
 };
-use regex::Regex;
-
 
 pub async fn run(account: String, password: String, country: String) -> Result<(), Error> {
     let client = GeekClient::new(account, password, country);
@@ -19,7 +18,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
 
     let mut empty = true;
     let mut output = String::new();
-    let mut cMap: HashMap<i32, Column> = HashMap::new();
+    let mut c_map: HashMap<i32, Column> = HashMap::new();
     for data in courses {
         if !data.is_empty() {
             empty = false;
@@ -32,7 +31,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
                 cv.extra.column_id, cv.extra.author_name, cv.title
             );
             output.push_str(&line);
-            cMap.insert(cv.extra.column_id, cv);
+            c_map.insert(cv.extra.column_id, cv);
         }
     }
 
@@ -43,7 +42,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
 
     println!("{}", output);
 
-    // Stdin Input
+    // Stdio Input
     println!("Please enter the id, separated by `,` : ");
     let mut input = String::new();
     io::stdin().read_line(&mut input)?;
@@ -58,7 +57,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
         .collect();
 
     for id in ids {
-        if let Some(ref mut col) = cMap.get(&id) {
+        if let Some(ref mut col) = c_map.get(&id) {
             let mut articles = client.get_post_list(col.extra.column_id).await?;
             for article in &mut articles {
                 let content = client.get_post_content(article.id).await?;
@@ -69,30 +68,52 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
             println!("{} Not Found", id);
         }
     }
-
     Ok(())
 }
 
+// 下载文章内容
 fn generate_column(column: &Column, articles: Vec<Article>) {
-    
-
-
+    unimplemented!()
 }
 
+//pub fn into_page(title: &str, content: String) -> String {
+//    format!(
+//        r#"
+//<!DOCTYPE html>
+//<html lang="en">
+//<head>
+//    <meta charset="UTF-8">
+//    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+//    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+//    <title>Document</title>
+//</head>
+//<body>
+//    <h1>{}</h1>
+//
+//    {}
+//</body>
+//</html>"#,
+//        title, content
+//    )
+//}
 
-pub fn download_replace_img(content: String) -> String {
+pub fn replace_img_tags(content: String, dist: String) -> String {
     let mut content = content;
-    let mut imgs: Vec<String> = Vec::new();
+    let mut imgs: Vec<Match> = Vec::new();
     let re = Regex::new(r#"<img src="(?P<img>.*?)""#).unwrap();
-    
+
     for cap in re.captures_iter(&content) {
-        let img = &cap["img"];
-        imgs.push(img.to_owned());
+        let matched = cap
+            .name("img")
+            .unwrap_or_else(|| panic!("no group named '{}'", name));
+        //        let img = &cap["img"];
+        imgs.push(matched);
     }
 
+    for m in imgs {
+        let replaced = utils::fetch_image(m.as_str(), &dist).await?;
+        content.replace_range(m.start()..m.end(), m.as_str());
+    }
 
     content
 }
-
-
-
