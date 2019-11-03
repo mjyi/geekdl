@@ -1,10 +1,8 @@
-use crate::{errors::Error, utils, Article, Column, Content, GeekClient};
-use regex::{Match, Regex};
+use crate::{errors::Error, utils, Article, Column, GeekClient};
+use regex::{Regex};
 use std::{
     collections::HashMap,
-    fs::File,
-    io::{self, Read},
-    path::PathBuf,
+    io,
 };
 
 pub async fn run(account: String, password: String, country: String) -> Result<(), Error> {
@@ -97,23 +95,22 @@ fn generate_column(column: &Column, articles: Vec<Article>) {
 //    )
 //}
 
-pub fn replace_img_tags(content: String, dist: String) -> String {
-    let mut content = content;
-    let mut imgs: Vec<Match> = Vec::new();
+pub async fn replace_img_tags(content: String, dist: String) -> String {
+    let mut content2 = content.clone();
+//    let mut imgs = Vec::new();
     let re = Regex::new(r#"<img src="(?P<img>.*?)""#).unwrap();
-
     for cap in re.captures_iter(&content) {
-        let matched = cap
-            .name("img")
-            .unwrap_or_else(|| panic!("no group named '{}'", name));
-        //        let img = &cap["img"];
-        imgs.push(matched);
+        let img = &cap["img"];
+        match utils::fetch_image(img, &dist).await {
+            Ok(replaced) => {
+//                let mut src = content.replace(m, &replaced);
+//                std::mem::replace(&mut content,  src);
+                content2 = content2.replace(img, &replaced);
+            },
+            Err(e) => println!("{}", e),
+        }
+
     }
 
-    for m in imgs {
-        let replaced = utils::fetch_image(m.as_str(), &dist).await?;
-        content.replace_range(m.start()..m.end(), m.as_str());
-    }
-
-    content
+    content2
 }
