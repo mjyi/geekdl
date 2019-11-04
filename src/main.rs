@@ -3,7 +3,6 @@ use structopt::StructOpt;
 
 #[tokio::main]
 async fn main() {
-
     let opt = Opt::from_args();
     println!("{:?}", opt);
 
@@ -15,6 +14,7 @@ async fn main() {
         } => {
             cmd::query::run(account, password, country).await.unwrap();
         }
+        _ => (),
     }
 }
 

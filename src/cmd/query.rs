@@ -1,9 +1,18 @@
-use crate::{errors::Error, utils, Article, Column, GeekClient};
-use regex::{Regex};
+use crate::{
+    errors::Error, 
+    opt::Opt, 
+    utils,
+    Article, 
+    Column, 
+    GeekClient
+};
 use std::{
+    cmp::Ordering,
     collections::HashMap,
     io,
+    fs,
 };
+use regex::Regex;
 
 pub async fn run(account: String, password: String, country: String) -> Result<(), Error> {
     let client = GeekClient::new(account, password, country);
@@ -56,12 +65,20 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
 
     for id in ids {
         if let Some(ref mut col) = c_map.get(&id) {
-            let mut articles = client.get_post_list(col.extra.column_id).await?;
+            println!("Get id {}", id);
+            let mut articles = client.get_articles(col.extra.column_id).await?;
+            debug!("after get_articles");
             for article in &mut articles {
-                let content = client.get_post_content(article.id).await?;
-                article.content = content;
+                let content = client.get_article_content(article.id).await?;
+                article.content = Some(content);
             }
+            articles.sort_by(|a, b| {
+                a.chapter_id
+                    .partial_cmp(&b.chapter_id)
+                    .unwrap_or(Ordering::Equal)
+            });
             generate_column(col, articles);
+            println!("after generate");
         } else {
             println!("{} Not Found", id);
         }
@@ -69,47 +86,33 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
     Ok(())
 }
 
-// 下载文章内容
+// 已下载文章内容写入文件
+// 生成一个 TOC , 文件存储原始单文件
 fn generate_column(column: &Column, articles: Vec<Article>) {
-    unimplemented!()
+    let target_dir = column.title.clone();
+    fs::create_dir(target_dir).unwrap_or(());
+    for (idx, article) in articles.iter().enumerate() {
+        if let Some(ref content) = article.content {
+            let content = format!("<h1>{}</h1> {}", article.article_title, content.article_content);
+            utils::write_to_file(&content, &format!("{}/{}.html", column.title, idx)).unwrap_or(());
+        }
+    }
 }
-
-//pub fn into_page(title: &str, content: String) -> String {
-//    format!(
-//        r#"
-//<!DOCTYPE html>
-//<html lang="en">
-//<head>
-//    <meta charset="UTF-8">
-//    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//    <meta http-equiv="X-UA-Compatible" content="ie=edge">
-//    <title>Document</title>
-//</head>
-//<body>
-//    <h1>{}</h1>
-//
-//    {}
-//</body>
-//</html>"#,
-//        title, content
-//    )
-//}
 
 pub async fn replace_img_tags(content: String, dist: String) -> String {
     let mut content2 = content.clone();
-//    let mut imgs = Vec::new();
+    //    let mut imgs = Vec::new();
     let re = Regex::new(r#"<img src="(?P<img>.*?)""#).unwrap();
     for cap in re.captures_iter(&content) {
         let img = &cap["img"];
         match utils::fetch_image(img, &dist).await {
             Ok(replaced) => {
-//                let mut src = content.replace(m, &replaced);
-//                std::mem::replace(&mut content,  src);
+                //                let mut src = content.replace(m, &replaced);
+                //                std::mem::replace(&mut content,  src);
                 content2 = content2.replace(img, &replaced);
-            },
+            }
             Err(e) => println!("{}", e),
         }
-
     }
 
     content2

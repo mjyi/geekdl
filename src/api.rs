@@ -1,4 +1,4 @@
-use crate::{errors::Error, model::*};
+use crate::{errors::Error, model::*, utils};
 use reqwest::{
     header::{HeaderMap, ACCEPT, ACCEPT_LANGUAGE, HOST, REFERER, USER_AGENT},
     Client,
@@ -108,9 +108,10 @@ impl GeekClient {
         Ok(ret)
     }
 
-    pub async fn get_post_list(&self, course_id: i32) -> Result<Vec<Article>, Error> {
+
+    pub async fn get_articles(&self, cid: i32) -> Result<Vec<Article>, Error> {
         let data = json!({
-            "cid": course_id.to_string(),
+            "cid": cid.to_string(),
             "size": 1000,
             "prev": 0,
             "order": "newest"
@@ -119,16 +120,14 @@ impl GeekClient {
         let req: Value = self
             .client
             .post(COURSE_LIST_URI)
-            .header(
-                REFERER,
-                format!("https://time.geekbang.org/column/{}", course_id),
-            )
+            .header(REFERER, format!("https://time.geekbang.org/column/{}", cid))
             .json(&data)
             .send()
             .await?
             .json()
             .await?;
-
+        
+        let _ = utils::write_to_file(&req.to_string(), "articles.json");
         if !is_success_code(&req) {
             return Err(Error::ResponseError(req["error"].clone()))?;
         }
@@ -137,7 +136,7 @@ impl GeekClient {
         Ok(ret)
     }
 
-    pub async fn get_post_content(&self, post_id: i32) -> Result<Content, Error> {
+    pub async fn get_article_content(&self, post_id: i32) -> Result<Content, Error> {
         let data = json!({
             "id": post_id,
         });

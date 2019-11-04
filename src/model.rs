@@ -35,16 +35,15 @@ pub struct Extra {
 pub struct Article {
     pub id: i32,
     pub article_title: String,
-    pub audio_download_url: String,
+    pub audio_download_url: Option<String>,
     pub chapter_id: String,
-    pub column_id: i32,
-    pub content: Content,
+    pub content: Option<Content>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Content {
     pub chapter_id: String,
-    pub column_id: String,
+    pub column_id: i32,
     pub article_title: String,
     pub article_content: String,
 }

@@ -11,4 +11,10 @@ pub enum Opt {
         #[structopt(long, short = "c", help = "the code of country", default_value = "86")]
         country: String,
     },
+    Gen {
+        #[structopt(long, short = "i")]
+        input: String,
+        #[structopt(long, short = "o", help = "the output name")]
+        out: String,
+    },
 }
