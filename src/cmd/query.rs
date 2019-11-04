@@ -66,7 +66,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
     for id in ids {
         if let Some(ref mut col) = c_map.get(&id) {
             println!("Get id {}", id);
-            let mut articles = client.get_articles(col.extra.column_id).await?;
+            let mut articles = client.get_articles(col.extra.column_id, col.extra.last_aid).await?;
             debug!("after get_articles");
             for article in &mut articles {
                 let content = client.get_article_content(article.id).await?;

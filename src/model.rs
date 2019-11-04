@@ -24,6 +24,7 @@ pub struct Column {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Extra {
     pub column_id: i32,
+    pub last_aid: i32,
     pub column_title: String,
     pub view_article_count: i32,
     pub article_count: i32,

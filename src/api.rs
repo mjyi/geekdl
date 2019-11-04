@@ -109,7 +109,7 @@ impl GeekClient {
     }
 
 
-    pub async fn get_articles(&self, cid: i32) -> Result<Vec<Article>, Error> {
+    pub async fn get_articles(&self, cid: i32, last_aid: i32) -> Result<Vec<Article>, Error> {
         let data = json!({
             "cid": cid.to_string(),
             "size": 1000,
@@ -117,22 +117,24 @@ impl GeekClient {
             "order": "newest"
         });
 
-        let req: Value = self
+        let rsp: Value = self
             .client
             .post(COURSE_LIST_URI)
-            .header(REFERER, format!("https://time.geekbang.org/column/{}", cid))
+            .header(REFERER, format!("https://time.geekbang.org/column/{}", last_aid))
             .json(&data)
             .send()
             .await?
             .json()
+            // .text()
             .await?;
-        
-        let _ = utils::write_to_file(&req.to_string(), "articles.json");
-        if !is_success_code(&req) {
-            return Err(Error::ResponseError(req["error"].clone()))?;
+        // let _ = utils::write_to_file(&rsp.to_string(), "rsp.log");
+        // Ok(vec![])
+        let _ = utils::write_to_file(&rsp.to_string(), "articles.json");
+        if !is_success_code(&rsp) {
+            return Err(Error::ResponseError(rsp["error"].clone()))?;
         }
 
-        let ret: Vec<Article> = serde_json::from_value(req["data"]["list"].clone())?;
+        let ret: Vec<Article> = serde_json::from_value(rsp["data"]["list"].clone())?;
         Ok(ret)
     }
 
