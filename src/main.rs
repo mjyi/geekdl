@@ -1,10 +1,14 @@
+#[macro_use]
+extern crate log;
+
 use geekdl::*;
 use structopt::StructOpt;
 
 #[tokio::main]
 async fn main() {
+    env_logger::init();
     let opt = Opt::from_args();
-    println!("{:?}", opt);
+    debug!("{:?}", opt);
 
     match opt {
         Opt::Query {
@@ -16,10 +20,4 @@ async fn main() {
         }
         _ => (),
     }
-}
-
-async fn for_test() {
-    let url =
-        "https://static001.geekbang.org/resource/image/8e/d3/8e603e3d795fc0ab2698f6f5eabf14d3.jpg";
-    let r = utils::fetch_image(url, "").await;
 }

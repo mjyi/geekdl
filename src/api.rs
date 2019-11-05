@@ -117,16 +117,18 @@ impl GeekClient {
             "order": "newest"
         });
 
-        let rsp: Value = self
+        let full = self
             .client
             .post(COURSE_LIST_URI)
             .header(REFERER, format!("https://time.geekbang.org/column/{}", last_aid))
             .json(&data)
             .send()
             .await?
-            .json()
-            // .text()
+            .bytes()
             .await?;
+            
+        let rsp: Value = serde_json::from_slice(&full)?;
+
         // let _ = utils::write_to_file(&rsp.to_string(), "rsp.log");
         // Ok(vec![])
         let _ = utils::write_to_file(&rsp.to_string(), "articles.json");
@@ -139,9 +141,7 @@ impl GeekClient {
     }
 
     pub async fn get_article_content(&self, post_id: i32) -> Result<Content, Error> {
-        let data = json!({
-            "id": post_id,
-        });
+        let data = json!({"id": post_id});
 
         let req: Value = self
             .client

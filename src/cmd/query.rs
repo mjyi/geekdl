@@ -1,9 +1,8 @@
 use crate::{
-    errors::Error, 
-    opt::Opt, 
+    errors::Error,
     utils,
-    Article, 
-    Column, 
+    Article,
+    Column,
     GeekClient
 };
 use std::{
@@ -11,6 +10,8 @@ use std::{
     collections::HashMap,
     io,
     fs,
+    time::Duration,
+    thread,
 };
 use regex::Regex;
 
@@ -19,7 +20,6 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
     if let Err(e) = client.login().await {
         println!("{}", e);
     }
-    println!("Login Success");
 
     let courses = client.get_column_all().await?;
 
@@ -67,15 +67,23 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
         if let Some(ref mut col) = c_map.get(&id) {
             println!("Get id {}", id);
             let mut articles = client.get_articles(col.extra.column_id, col.extra.last_aid).await?;
-            debug!("after get_articles");
+            println!("after get_articles {}", articles.len());
             for article in &mut articles {
-                let content = client.get_article_content(article.id).await?;
-                article.content = Some(content);
+                println!("Prepare to download {}, {}", article.article_title, article.id);
+                let mut content = None;
+                thread::sleep(Duration::from_secs(3));
+                match client.get_article_content(article.id).await {
+                    Ok(c) => content = Some(c),
+                    Err(e) => println!("{:?}", e),
+                };
+                article.content = content;
             }
             articles.sort_by(|a, b| {
-                a.chapter_id
-                    .partial_cmp(&b.chapter_id)
-                    .unwrap_or(Ordering::Equal)
+                let ord = a.chapter_id.cmp(&b.chapter_id);
+                if ord == Ordering::Equal {
+                    return a.id.cmp(&b.id);
+                }
+                ord
             });
             generate_column(col, articles);
             println!("after generate");
@@ -86,15 +94,19 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
     Ok(())
 }
 
-// 已下载文章内容写入文件
-// 生成一个 TOC , 文件存储原始单文件
+// 已下载文章内容写入单文件
 fn generate_column(column: &Column, articles: Vec<Article>) {
-    let target_dir = column.title.clone();
-    fs::create_dir(target_dir).unwrap_or(());
+    let target_file = column.title.clone();
+    // fs::create_dir(target_dir).unwrap_or(());
+        // let mut file = File::create(&Path::new(file_name))?;
+    // file.write_all(input.as_bytes())?;
+    
     for (idx, article) in articles.iter().enumerate() {
         if let Some(ref content) = article.content {
-            let content = format!("<h1>{}</h1> {}", article.article_title, content.article_content);
-            utils::write_to_file(&content, &format!("{}/{}.html", column.title, idx)).unwrap_or(());
+            let content = format!("<h1>{}</h1>\n{}", article.article_title, content.article_content);
+            if let Err(e) = utils::write_to_file(&content, &format!("{}/{}.html", column.title, idx)) {
+                print!("{:?}", e);
+            }
         }
     }
 }
@@ -107,8 +119,6 @@ pub async fn replace_img_tags(content: String, dist: String) -> String {
         let img = &cap["img"];
         match utils::fetch_image(img, &dist).await {
             Ok(replaced) => {
-                //                let mut src = content.replace(m, &replaced);
-                //                std::mem::replace(&mut content,  src);
                 content2 = content2.replace(img, &replaced);
             }
             Err(e) => println!("{}", e),
@@ -117,3 +127,4 @@ pub async fn replace_img_tags(content: String, dist: String) -> String {
 
     content2
 }
+
