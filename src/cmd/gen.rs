@@ -1,12 +1,5 @@
 use crate::{errors::Error, model::Article};
-use std::ptr;
-
-use std::{
-    cmp::Ordering,
-    fs::{self, File},
-    io::prelude::*,
-    io::{self, BufReader},
-};
+use std::{fs::File, io::prelude::*, io::BufReader};
 
 pub fn run(input: &str, out: &str) -> Result<(), Error> {
     let file = File::open(input)?;
@@ -28,23 +21,4 @@ pub fn run(input: &str, out: &str) -> Result<(), Error> {
     }
 
     Ok(())
-}
-
-fn sort(mut articles: Vec<Article>) -> Vec<Article> {
-    if articles.is_empty() {
-        return articles;
-    }
-    for i in 1..articles.len() {
-        let value = articles[i].clone();
-        let mut j = (i - 1) as i32;
-        while j >= 0 {
-            if articles[j as usize].chapter_id > value.chapter_id {
-                articles.swap(j as usize + 1, j as usize);
-            } else if articles[j as usize].id > value.id {
-                articles.swap(j as usize + 1, j as usize);
-            }
-            j -= 1;
-        }
-    }
-    articles
 }

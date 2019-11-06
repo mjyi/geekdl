@@ -6,7 +6,6 @@ use crate::{
     GeekClient
 };
 use std::{
-    cmp::Ordering,
     collections::HashMap,
     io::prelude::*,
     io,

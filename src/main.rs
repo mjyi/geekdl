@@ -4,8 +4,6 @@ extern crate log;
 use geekdl::*;
 use structopt::StructOpt;
 
-use std::fs::File;
-
 #[tokio::main]
 async fn main() {
     env_logger::init();
