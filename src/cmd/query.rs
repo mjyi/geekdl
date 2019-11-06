@@ -1,19 +1,13 @@
-use crate::{
-    errors::Error,
-    utils,
-    Article,
-    Column,
-    GeekClient
-};
+use crate::{errors::Error, utils, Article, Column, GeekClient};
+use regex::Regex;
 use std::{
     collections::HashMap,
-    io::prelude::*,
-    io,
     fs::{self, File},
-    time::Duration,
+    io,
+    io::prelude::*,
     thread,
+    time::Duration,
 };
-use regex::Regex;
 
 pub async fn run(account: String, password: String, country: String) -> Result<(), Error> {
     let client = GeekClient::new(account, password, country);
@@ -66,10 +60,15 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
     for id in ids {
         if let Some(ref mut col) = c_map.get(&id) {
             println!("Get id {}", id);
-            let mut articles = client.get_articles(col.extra.column_id, col.extra.last_aid).await?;
+            let mut articles = client
+                .get_articles(col.extra.column_id, col.extra.last_aid)
+                .await?;
             println!("after get_articles {}", articles.len());
             for article in &mut articles {
-                println!("Prepare to download {}, {}", article.article_title, article.id);
+                println!(
+                    "Prepare to download {}, {}",
+                    article.article_title, article.id
+                );
                 let mut content = None;
                 thread::sleep(Duration::from_secs(3));
                 match client.get_article_content(article.id).await {
@@ -88,7 +87,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
 }
 
 // 已下载文章内容写入单文件
-fn generate_column(column: &Column, articles:&mut Vec<Article>) -> Result<(), Error> {
+fn generate_column(column: &Column, articles: &mut Vec<Article>) -> Result<(), Error> {
     let target_dir = column.title.clone();
     fs::create_dir(&target_dir).unwrap_or(());
 
@@ -99,12 +98,12 @@ fn generate_column(column: &Column, articles:&mut Vec<Article>) -> Result<(), Er
     println!("full len {}", full.len());
     data_json.write_all(&full.as_bytes()).unwrap_or(());
 
-       // let mut source = File::create(&format!("{}/source.html", target_dir))?;
+    // let mut source = File::create(&format!("{}/source.html", target_dir))?;
     // for article in articles {
-       //  if let Some(ref content) = article.content {
-       //      let content = format!("<h1>{}</h1>\n{}", article.article_title, content.article_content);
-       //      source.write(content.as_bytes())?;
-       // }
+    //  if let Some(ref content) = article.content {
+    //      let content = format!("<h1>{}</h1>\n{}", article.article_title, content.article_content);
+    //      source.write(content.as_bytes())?;
+    // }
     // }
     Ok(())
 }
@@ -125,4 +124,3 @@ pub async fn replace_img_tags(content: String, dist: String) -> String {
 
     content2
 }
-

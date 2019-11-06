@@ -17,7 +17,6 @@ pub async fn fetch_image(url: &str, dir: &str) -> Result<String, Box<dyn Error>>
     Ok(String::from(file.to_str().unwrap_or("")))
 }
 
-
 pub fn write_to_file(input: &str, file_name: &str) -> Result<(), Box<dyn Error>> {
     let mut file = File::create(&Path::new(file_name))?;
     file.write_all(input.as_bytes())?;

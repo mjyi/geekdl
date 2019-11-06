@@ -21,4 +21,3 @@ async fn main() {
         Opt::Gen { input, out } => cmd::gen::run(&input, &out).unwrap(),
     }
 }
-
