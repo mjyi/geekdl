@@ -32,7 +32,7 @@ pub struct Extra {
     pub author_intro: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Article {
     pub id: i32,
     pub article_title: String,
@@ -41,7 +41,7 @@ pub struct Article {
     pub content: Option<Content>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Content {
     pub chapter_id: String,
     pub column_id: i32,

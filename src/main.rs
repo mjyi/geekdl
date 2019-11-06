@@ -4,6 +4,8 @@ extern crate log;
 use geekdl::*;
 use structopt::StructOpt;
 
+use std::fs::File;
+
 #[tokio::main]
 async fn main() {
     env_logger::init();
@@ -18,6 +20,7 @@ async fn main() {
         } => {
             cmd::query::run(account, password, country).await.unwrap();
         }
-        _ => (),
+        Opt::Gen { input, out } => cmd::gen::run(&input, &out).unwrap(),
     }
 }
+

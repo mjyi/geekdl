@@ -114,7 +114,7 @@ impl GeekClient {
             "cid": cid.to_string(),
             "size": 1000,
             "prev": 0,
-            "order": "newest"
+            "order": "earliest"
         });
 
         let full = self

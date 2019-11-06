@@ -8,8 +8,9 @@ use crate::{
 use std::{
     cmp::Ordering,
     collections::HashMap,
+    io::prelude::*,
     io,
-    fs,
+    fs::{self, File},
     time::Duration,
     thread,
 };
@@ -78,14 +79,7 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
                 };
                 article.content = content;
             }
-            articles.sort_by(|a, b| {
-                let ord = a.chapter_id.cmp(&b.chapter_id);
-                if ord == Ordering::Equal {
-                    return a.id.cmp(&b.id);
-                }
-                ord
-            });
-            generate_column(col, articles);
+            generate_column(col, &mut articles).unwrap_or(());
             println!("after generate");
         } else {
             println!("{} Not Found", id);
@@ -95,20 +89,25 @@ pub async fn run(account: String, password: String, country: String) -> Result<(
 }
 
 // 已下载文章内容写入单文件
-fn generate_column(column: &Column, articles: Vec<Article>) {
-    let target_file = column.title.clone();
-    // fs::create_dir(target_dir).unwrap_or(());
-        // let mut file = File::create(&Path::new(file_name))?;
-    // file.write_all(input.as_bytes())?;
-    
-    for (idx, article) in articles.iter().enumerate() {
-        if let Some(ref content) = article.content {
-            let content = format!("<h1>{}</h1>\n{}", article.article_title, content.article_content);
-            if let Err(e) = utils::write_to_file(&content, &format!("{}/{}.html", column.title, idx)) {
-                print!("{:?}", e);
-            }
-        }
-    }
+fn generate_column(column: &Column, articles:&mut Vec<Article>) -> Result<(), Error> {
+    let target_dir = column.title.clone();
+    fs::create_dir(&target_dir).unwrap_or(());
+
+    let mut data_json = File::create(&format!("{}/data.json", target_dir))?;
+
+    let full = serde_json::to_string(&articles).unwrap_or("".to_string());
+
+    println!("full len {}", full.len());
+    data_json.write_all(&full.as_bytes()).unwrap_or(());
+
+       // let mut source = File::create(&format!("{}/source.html", target_dir))?;
+    // for article in articles {
+       //  if let Some(ref content) = article.content {
+       //      let content = format!("<h1>{}</h1>\n{}", article.article_title, content.article_content);
+       //      source.write(content.as_bytes())?;
+       // }
+    // }
+    Ok(())
 }
 
 pub async fn replace_img_tags(content: String, dist: String) -> String {
